@@ -96,6 +96,12 @@ second_grid()
 
       triangulation.execute_coarsening_and_refinement();
     }
+  {
+    std::ofstream out("grid-2.svg");
+    GridOut       grid_out;
+    grid_out.write_svg(triangulation, out);
+    std::cout << "Grid written to grid-2.svg" << std::endl;
+  }
 }
 
 void
