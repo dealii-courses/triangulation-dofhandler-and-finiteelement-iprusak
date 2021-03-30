@@ -19,6 +19,7 @@
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_out.h>
+#include <deal.II/grid/manifold_lib.h>
 #include <deal.II/grid/tria.h>
 #include <deal.II/grid/tria_accessor.h>
 #include <deal.II/grid/tria_iterator.h>
@@ -84,7 +85,7 @@ second_grid()
   GridGenerator::hyper_shell(
     triangulation, center, inner_radius, outer_radius, 10);
 
-  // triangulation.reset_all_manifolds();
+  triangulation.reset_all_manifolds();
   for (unsigned int step = 0; step < 5; ++step)
     {
       std::ofstream out("grid-2-" + std::to_string(step) + ".vtk");
@@ -172,6 +173,23 @@ third_grid()
 }
 
 
+void
+circle_grid()
+{
+  Triangulation<2> triangulation;
+  GridGenerator::hyper_ball<2>(triangulation);
+  // triangulation.set_all_manifold_ids(0);
+  triangulation.set_manifold(0, SphericalManifold<2>());
+  const Point<2> mesh_center;
+  for (const auto &cell : triangulation.active_cell_iterators())
+    if (mesh_center.distance(cell->center()) > cell->diameter() / 10)
+      cell->set_all_manifold_ids(0);
+  triangulation.refine_global(2);
+  std::ofstream out("circle.vtk");
+  GridOut       grid_out;
+  grid_out.write_vtk(triangulation, out);
+}
+
 
 int
 main()
@@ -179,4 +197,5 @@ main()
   first_grid();
   second_grid();
   third_grid();
+  circle_grid();
 }
