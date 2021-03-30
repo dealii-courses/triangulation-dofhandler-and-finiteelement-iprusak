@@ -30,6 +30,16 @@
 using namespace dealii;
 
 
+
+std::tuple<int, int, int>
+grid_parameters(const Triangulation<2> &tria)
+{
+  return std::make_tuple(tria.n_levels(),
+                         tria.n_cells(),
+                         tria.n_active_cells());
+}
+
+
 void
 first_grid()
 {
@@ -57,6 +67,9 @@ first_grid()
     grid_out.write_vtk(triangulation, out);
     std::cout << "Grid written to grid-1.vtk" << std::endl;
   }
+  auto params = grid_parameters(triangulation);
+  std::cout << std::get<0>(params) << " " << std::get<1>(params) << "  "
+            << std::get<2>(params) << std::endl;
 }
 
 
@@ -102,6 +115,9 @@ second_grid()
     grid_out.write_svg(triangulation, out);
     std::cout << "Grid written to grid-2.svg" << std::endl;
   }
+  auto params = grid_parameters(triangulation);
+  std::cout << std::get<0>(params) << " " << std::get<1>(params) << "  "
+            << std::get<2>(params) << std::endl;
 }
 
 void
@@ -149,6 +165,10 @@ third_grid()
 
       triangulation.execute_coarsening_and_refinement();
     }
+
+  auto params = grid_parameters(triangulation);
+  std::cout << std::get<0>(params) << " " << std::get<1>(params) << "  "
+            << std::get<2>(params) << std::endl;
 }
 
 
