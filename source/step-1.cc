@@ -191,6 +191,17 @@ circle_grid()
 }
 
 
+void
+torus_grid()
+{
+  Triangulation<2, 3> triangulation;
+  GridGenerator::torus<2, 3>(triangulation, 4, 1);
+  triangulation.refine_global(2);
+  std::ofstream out("torus.vtk");
+  GridOut       grid_out;
+  grid_out.write_vtk(triangulation, out);
+}
+
 int
 main()
 {
@@ -198,4 +209,5 @@ main()
   second_grid();
   third_grid();
   circle_grid();
+  torus_grid();
 }
