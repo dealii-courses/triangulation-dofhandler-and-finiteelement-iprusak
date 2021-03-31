@@ -37,7 +37,8 @@
 using namespace dealii;
 
 
-void make_grid(Triangulation<2> &triangulation)
+void
+make_grid(Triangulation<2> &triangulation)
 {
   const Point<2> center(1, 0);
   const double   inner_radius = 0.5, outer_radius = 1.0;
@@ -71,10 +72,19 @@ void make_grid(Triangulation<2> &triangulation)
     }
 }
 
-
-void distribute_dofs(DoFHandler<2> &dof_handler)
+void
+make_square_grid(Triangulation<2> &triangulation)
 {
-  static const FE_Q<2> finite_element(1);
+  GridGenerator::hyper_cube(triangulation);
+  triangulation.refine_global(3);
+}
+
+
+
+void
+distribute_dofs(DoFHandler<2> &dof_handler, unsigned int degree)
+{
+  FE_Q<2> finite_element(degree);
   dof_handler.distribute_dofs(finite_element);
 
   DynamicSparsityPattern dynamic_sparsity_pattern(dof_handler.n_dofs(),
@@ -85,13 +95,14 @@ void distribute_dofs(DoFHandler<2> &dof_handler)
   SparsityPattern sparsity_pattern;
   sparsity_pattern.copy_from(dynamic_sparsity_pattern);
 
-  std::ofstream out("sparsity_pattern1.svg");
+  std::ofstream out("sparsity_pattern1-"+std::to_string(degree)+".svg");
   sparsity_pattern.print_svg(out);
 }
 
 
 
-void renumber_dofs(DoFHandler<2> &dof_handler)
+void
+renumber_dofs(DoFHandler<2> &dof_handler, unsigned int degree)
 {
   DoFRenumbering::Cuthill_McKee(dof_handler);
 
@@ -102,7 +113,7 @@ void renumber_dofs(DoFHandler<2> &dof_handler)
   SparsityPattern sparsity_pattern;
   sparsity_pattern.copy_from(dynamic_sparsity_pattern);
 
-  std::ofstream out("sparsity_pattern2.svg");
+  std::ofstream out("sparsity_pattern2-"+std::to_string(degree)+".svg");
   sparsity_pattern.print_svg(out);
 }
 
@@ -111,11 +122,15 @@ void renumber_dofs(DoFHandler<2> &dof_handler)
 int
 main()
 {
-  Triangulation<2> triangulation;
-  make_grid(triangulation);
+  for (int i = 1; i < 4; i++)
+    {
+      Triangulation<2> triangulation;
+      // make_grid(triangulation);
+      make_square_grid(triangulation);
 
-  DoFHandler<2> dof_handler(triangulation);
+      DoFHandler<2> dof_handler(triangulation);
 
-  distribute_dofs(dof_handler);
-  renumber_dofs(dof_handler);
+      distribute_dofs(dof_handler, i);
+      renumber_dofs(dof_handler, i);
+    }
 }
