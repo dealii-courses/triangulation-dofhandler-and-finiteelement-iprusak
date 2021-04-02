@@ -37,7 +37,8 @@
 using namespace dealii;
 
 
-void make_grid(Triangulation<2> &triangulation)
+void
+make_grid(Triangulation<2> &triangulation)
 {
   const Point<2> center(1, 0);
   const double   inner_radius = 0.5, outer_radius = 1.0;
@@ -71,8 +72,17 @@ void make_grid(Triangulation<2> &triangulation)
     }
 }
 
+void
+make_square_grid(Triangulation<2> &triangulation)
+{
+  GridGenerator::hyper_cube(triangulation);
+  triangulation.refine_global(3);
+}
 
-void distribute_dofs(DoFHandler<2> &dof_handler)
+
+
+SparsityPattern
+distribute_dofs(DoFHandler<2> &dof_handler)
 {
   static const FE_Q<2> finite_element(1);
   dof_handler.distribute_dofs(finite_element);
@@ -87,11 +97,14 @@ void distribute_dofs(DoFHandler<2> &dof_handler)
 
   std::ofstream out("sparsity_pattern1.svg");
   sparsity_pattern.print_svg(out);
+
+  return sparsity_pattern;
 }
 
 
 
-void renumber_dofs(DoFHandler<2> &dof_handler)
+SparsityPattern
+renumber_dofs(DoFHandler<2> &dof_handler)
 {
   DoFRenumbering::Cuthill_McKee(dof_handler);
 
@@ -104,18 +117,58 @@ void renumber_dofs(DoFHandler<2> &dof_handler)
 
   std::ofstream out("sparsity_pattern2.svg");
   sparsity_pattern.print_svg(out);
+
+  return sparsity_pattern;
 }
 
+void
+row_lenths(const SparsityPattern &sparsity_pattern)
+{
+  for (unsigned int i = 0; i < sparsity_pattern.n_rows(); i++)
+    {
+      std::cout << "Row" << i << "- - row length "
+                << sparsity_pattern.row_length(i) << std::endl;
+    }
+}
+
+std::tuple<int, int, double, double>
+compute_pattern_statistics(const SparsityPattern &sparsity_pattern)
+{
+  double avarage_per_row = 0.;
+  for (unsigned int i = 0; i < sparsity_pattern.n_rows(); i++)
+    {
+      avarage_per_row += sparsity_pattern.row_length(i);
+    }
+
+  double fill_ratio = avarage_per_row / (double)(sparsity_pattern.n_rows() *
+                                                 sparsity_pattern.n_cols());
+  avarage_per_row /= (double)sparsity_pattern.n_rows();
+  return std::make_tuple(sparsity_pattern.n_rows(),
+                         sparsity_pattern.bandwidth(),
+                         avarage_per_row,
+                         fill_ratio);
+}
 
 
 int
 main()
 {
   Triangulation<2> triangulation;
-  make_grid(triangulation);
+  // make_grid(triangulation);
+  make_square_grid(triangulation);
 
   DoFHandler<2> dof_handler(triangulation);
 
-  distribute_dofs(dof_handler);
-  renumber_dofs(dof_handler);
+  auto sparcity_pattern  = distribute_dofs(dof_handler);
+  auto sparcity_pattern2 = renumber_dofs(dof_handler);
+
+  row_lenths(sparcity_pattern2);
+
+  std::cout << sparcity_pattern.row_length(41) << std::endl;
+
+  auto patern_statistics = compute_pattern_statistics(sparcity_pattern2);
+  std::cout << std::get<0>(patern_statistics) << " "
+            << std::get<1>(patern_statistics) << "  "
+            << std::get<2>(patern_statistics) << "  "
+            << std::get<3>(patern_statistics) << std::endl;
 }
