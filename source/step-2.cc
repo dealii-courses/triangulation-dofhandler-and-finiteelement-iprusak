@@ -124,7 +124,7 @@ renumber_dofs(DoFHandler<2> &dof_handler)
 void
 row_lenths(const SparsityPattern &sparsity_pattern)
 {
-  for (auto i = 0; i < sparsity_pattern.n_rows(); i++)
+  for (unsigned int i = 0; i < sparsity_pattern.n_rows(); i++)
     {
       std::cout << "Row" << i << "- - row length "
                 << sparsity_pattern.row_length(i) << std::endl;
@@ -135,7 +135,7 @@ std::tuple<int, int, double, double>
 compute_pattern_statistics(const SparsityPattern &sparsity_pattern)
 {
   double avarage_per_row = 0.;
-  for (auto i = 0; i < sparsity_pattern.n_rows(); i++)
+  for (unsigned int i = 0; i < sparsity_pattern.n_rows(); i++)
     {
       avarage_per_row += sparsity_pattern.row_length(i);
     }
